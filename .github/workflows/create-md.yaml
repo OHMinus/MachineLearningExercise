@@ -39,9 +39,11 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 変更があるか確認
-          if [ -n "$(git status --porcelain)" ]; then
-            git add *.md
+          # 新しく作成された可能性のあるMarkdownファイルをすべて追加
+          git add ./**/*.md
+          
+          # 変更があるか確認（変更がない場合はコミットをスキップ）
+          if ! git diff --cached --quiet; then
             git commit -m "Auto-create missing markdown files for PDFs"
             git push
           else
