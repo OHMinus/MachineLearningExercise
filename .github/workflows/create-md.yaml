@@ -1,0 +1,48 @@
+name: Create Missing Markdown Files
+
+on:
+  push:
+    paths:
+      - '**.pdf' # PDFファイルが追加・変更された時に実行
+
+permissions:
+  contents: write
+
+jobs:
+  check-and-create:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create missing markdown files
+        run: |
+          # PDFファイルを走査
+          find . -name "*.pdf" | while read pdf_file; do
+            # 拡張子を除いたファイル名を取得
+            base_name="${pdf_file%.pdf}"
+            md_file="${base_name}.md"
+
+            # mdファイルが存在するか確認
+            if [ ! -f "$md_file" ]; then
+              echo "Creating $md_file"
+              echo "---" > "$md_file"
+              echo "title: $(basename "$base_name")" >> "$md_file"
+              echo "date: $(date +'%Y-%m-%d')" >> "$md_file"
+              echo "---" >> "$md_file"
+            fi
+          done
+
+      - name: Commit and push if files were created
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 変更があるか確認
+          if [ -n "$(git status --porcelain)" ]; then
+            git add *.md
+            git commit -m "Auto-create missing markdown files for PDFs"
+            git push
+          else
+            echo "No new markdown files to create."
+          fi
