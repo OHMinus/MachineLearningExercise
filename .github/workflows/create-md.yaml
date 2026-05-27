@@ -24,16 +24,18 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Set up Virtual Environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install marker-pdf
+          
       - name: Install Marker
         run: |
           pip install marker-pdf
-          # インストール場所を確認してパスを通す
-          pip show marker-pdf
-          echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
+          python -c "import marker; print('Marker is installed')"
 
       - name: Parse PDF to Markdown
-        env:
-          PYTHONPATH: ${{ env.PYTHONPATH }}
         run: |
           find . -name "*.pdf" | while read pdf_file; do
             base_name="${pdf_file%.pdf}"
