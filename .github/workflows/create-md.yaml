@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '**.pdf' # PDFファイルが追加・変更された時に実行
+  workflow_dispatch:
 
 permissions:
   contents: write
