@@ -18,7 +18,7 @@ jobs:
 
       - name: Install dependencies
         run: sudo apt-get update
-        
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -27,8 +27,13 @@ jobs:
       - name: Install Marker
         run: |
           pip install marker-pdf
+          # インストール場所を確認してパスを通す
+          pip show marker-pdf
+          echo "PYTHONPATH=$PYTHONPATH:$(pwd)" >> $GITHUB_ENV
 
       - name: Parse PDF to Markdown
+        env:
+          PYTHONPATH: ${{ env.PYTHONPATH }}
         run: |
           find . -name "*.pdf" | while read pdf_file; do
             base_name="${pdf_file%.pdf}"
