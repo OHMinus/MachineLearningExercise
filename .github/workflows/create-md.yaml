@@ -17,22 +17,24 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+        run: sudo apt-get update
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-      - name: Create and parse PDF to Markdown
+      - name: Install Marker
+        run: |
+          pip install marker-pdf
+
+      - name: Parse PDF to Markdown
         run: |
           find . -name "*.pdf" | while read pdf_file; do
             base_name="${pdf_file%.pdf}"
             md_file="${base_name}.md"
-
             if [ ! -f "$md_file" ]; then
-              echo "Parsing $pdf_file to $md_file"
-              # pdftotextを使用してレイアウトを保持しつつMarkdown形式へ
-              # -layoutオプションで視覚的な配置を維持
-              pdftotext -layout "$pdf_file" - | sed 's/^/  /' > "$md_file"
-              
-              # 先頭にYAMLフロントマターを追記
-              echo -e "---\ntitle: $(basename "$base_name")\ndate: $(date +'%Y-%m-%d')\n---\n$(cat "$md_file")" > "$md_file"
+              python tools/convert_pdf.py "$pdf_file" "$md_file"
             fi
           done
 
