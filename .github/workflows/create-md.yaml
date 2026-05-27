@@ -16,21 +16,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Create missing markdown files
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
+
+      - name: Create and parse PDF to Markdown
         run: |
-          # PDFファイルを走査
           find . -name "*.pdf" | while read pdf_file; do
-            # 拡張子を除いたファイル名を取得
             base_name="${pdf_file%.pdf}"
             md_file="${base_name}.md"
 
-            # mdファイルが存在するか確認
             if [ ! -f "$md_file" ]; then
-              echo "Creating $md_file"
-              echo "---" > "$md_file"
-              echo "title: $(basename "$base_name")" >> "$md_file"
-              echo "date: $(date +'%Y-%m-%d')" >> "$md_file"
-              echo "---" >> "$md_file"
+              echo "Parsing $pdf_file to $md_file"
+              # pdftotextを使用してレイアウトを保持しつつMarkdown形式へ
+              # -layoutオプションで視覚的な配置を維持
+              pdftotext -layout "$pdf_file" - | sed 's/^/  /' > "$md_file"
+              
+              # 先頭にYAMLフロントマターを追記
+              echo -e "---\ntitle: $(basename "$base_name")\ndate: $(date +'%Y-%m-%d')\n---\n$(cat "$md_file")" > "$md_file"
             fi
           done
 
